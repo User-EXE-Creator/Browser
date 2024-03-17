@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edge-Chrome Hybrid Web Browser</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <style>
+        /* Your styles here */
+        .ui-tabs .ui-tabs-nav li {
+            position: relative;
+        }
+        .ui-tabs .ui-tabs-nav li button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: none;
+            border: none;
+            line-height: 1;
+            padding: 0.2em 0.5em;
+            font-size: 0.9em;
+        }
+        .webFrame {
+            width: 100%;
+            height: calc(100vh - 50px);
+            border: none;
+        }
+        #addTab {
+            position: absolute;
+            right: 14px;
+            top: 16px;
+            background: #1c1fd4;
+            border: 1px solid #cfcfcf;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .browser-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="tabs">
+        <ul>
+            <li><a href="#tab-1">Tab 1</a> <button class='ui-icon ui-icon-close' role='presentation'>Remove Tab</button></li>
+        </ul>
+        <div id="tab-1" class="tab">
+            <div class="browser-bar">
+                <input class="urlInput" type="text" placeholder="Enter URL or search Bing">
+            </div>
+            <iframe class="webFrame" src="https://www.bing.com"></iframe>
+        </div>
+    </div>
+
+    <button id="addTab">+</button>
+
+    <script>
+        var tabCounter = 2;
+
+        var tabs = $( "#tabs" ).tabs();
+
+        $('#addTab').click(function() {
+            var tabTemplate = "<li><a href='#{href}'>Tab #{label}</a> <button class='ui-icon ui-icon-close' role='presentation'>Remove Tab</button></li>";
+            var id = "tab-" + tabCounter,
+                li = $(tabTemplate.replace(/#\{href\}/g, "#" + id).replace(/#\{label\}/g, tabCounter)),
+                tabContentHtml = "<div class='browser-bar'><input class='urlInput' type='text' placeholder='Enter URL or search Bing'></div><iframe class='webFrame' src='https://www.bing.com'></iframe>";
+
+            tabs.find(".ui-tabs-nav").append(li);
+            tabs.append("<div id='" + id + "'>" + tabContentHtml + "</div>");
+            tabs.tabs("refresh");
+            tabCounter++;
+        });
+
+        // Close icon: removing the tab on click
+        tabs.delegate("button.ui-icon-close", "click", function() {
+            var panelId = $(this).closest("li").remove().attr("aria-controls");
+            $("#" + panelId).remove();
+            tabs.tabs("refresh");
+            if ($("#tabs ul li").length == 0) {
+                $("#addTab").click();
+            }
+        });
+
+        $('.urlInput').on('keypress', function (e) {
+            if (e.key === 'Enter') {
+                var url = $(this).val();
+                if (url === "exel://camera" || url === "about:camera") {
+                    url = 'camera.html';
+                } else if (url === "exel://newtab" || url === "about:newtab") {
+                    url = 'https://www.bing.com';
+                    $(this).val('');
+                } else if (!url.match(/\.com$|\.org$|\.gov$|\.io$/i)) {
+                    url = 'https://www.bing.com/search?q=' + encodeURIComponent(url);
+                } else if (!/^https?:\/\//i.test(url)) {
+                    url = 'http://' + url;
+                }
+                $(this).parent().next('.webFrame').attr('src', url);
+            }
+        });
+    </script>
+</body>
+</html>
